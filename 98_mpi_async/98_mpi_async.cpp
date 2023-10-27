@@ -95,7 +95,7 @@ int main(int argc, char *argv[]){
                 MPI_COMM_WORLD,
                 &request
             );
-            printf("TX: Envía: %d -> A: %d | %18.15lf, %18.15lf\n", rank, data.state, data.real, data.imag);
+            printf(" TX: Envía: %d -> A: %d | %18.15lf, %18.15lf\n", rank, data.state, data.real, data.imag);
             MPI_Wait(&request, &status);
         }
     }
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]){
                 MPI_COMM_WORLD,
                 &status
             );
-            printf(" RX: Recibe: %d <- De: %d | %18.15lf, %18.15lf\n", data_recv.state, status.MPI_SOURCE, data_recv.real, data_recv.imag);
+            printf("   RX: Recibe: %d <- De: %d | %18.15lf, %18.15lf\n", data_recv.state, status.MPI_SOURCE, data_recv.real, data_recv.imag);
             amplitudes[data_recv.state*2] += data_recv.real;
             amplitudes[(data_recv.state*2)+1] += data_recv.imag;
         }
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]){
     repeatChar('=', 60);
     for (int i = 0; i < size; i++) {
         if (rank == i) {
-            printf("%d | %s > %18.15lf\t%18.15lf\n", i, decimalToBinary(i, maxBits).c_str(), amplitudes[i*2], amplitudes[(i*2)+1]);
+            printf(" %d | %s > %18.15lf\t%18.15lf\n", i, decimalToBinary(i, maxBits).c_str(), amplitudes[i*2], amplitudes[(i*2)+1]);
         }
     }
     printf("\tIteration took %.6f seconds.\n", (MPI_Wtime() - start_clock));
