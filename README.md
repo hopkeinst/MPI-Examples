@@ -5,6 +5,8 @@
 
 #### 98 MPI Async
 
+El [código en C++: 98_mpi_async.cpp](./98_mpi_async/98_mpi_async.cpp).
+
 La idea es generar una comunicación asincrónica en la cual no se conoce la cantidad de mensajes a enviar ni a recibir.
 
 Está basado en la idea para un simulador cuántico en el cual se ingresa la cantidad de qubits, y a partir de esto se calcula el número de estados y con esto se define cuales procesos van a enviar a cuales otros procesos.
