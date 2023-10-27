@@ -1,0 +1,12 @@
+
+# dir VScode
+.vscode 
+
+# Compile files
+bin
+
+# Previous codes
+01_hello_world
+02_send_receive
+98_mpi_async/97_mpi_test.cpp
+
