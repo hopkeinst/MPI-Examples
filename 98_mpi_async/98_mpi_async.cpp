@@ -45,7 +45,9 @@ int main(int argc, char *argv[]){
     int rank, size;
 
     unsigned int nQubits, nStates, nSends;
+    // Se lee la cantidad de qubits
     nQubits = atoi(argv[1]);
+    // Se establece la cantidad de estados
     nStates = pow(2, nQubits);
     unsigned int maxBits = ceil(log2(nStates));
     unsigned int statesPerProc;
