@@ -2,7 +2,7 @@ CXX = mpicxx
 
 LIBS += -L /opt/intel/oneapi/mpi/latest/lib/release -lmpi
 
-all: hello_world send_receive mpi_async test_random
+all: hello_world send_receive mpi_async test_noRandom test_random
 
 # 01 HELLO WORLD
 hello_world:
@@ -16,12 +16,19 @@ send_receive:
 	@echo "Generado el ejecutable bin/02_send_receive"
 	@echo "-----------------------------------------------------------"
 
-# 98 MPI ASYNC
+# 97 MPI ASYNC
 # Test para crear varios envíos de manera aleatorio, al igual que recibirlos, asincrónicos
 mpi_async:
-	$(CXX) 98_mpi_async/98_mpi_async.cpp -o bin/98_mpi_async
-	$(CXX) 98_mpi_async/97_mpi_test.cpp -o bin/97_mpi_test
+	$(CXX) 97_mpi_async/97_mpi_async.cpp -o bin/97_mpi_async
+	$(CXX) 97_mpi_async/97_mpi_test.cpp -o bin/97_mpi_test
 	@echo "Generado el ejecutable bin/97_mpi_test"
+	@echo "-----------------------------------------------------------"
+
+# 98 TEST NO RANDOM
+# 
+test_noRandom:
+	$(CXX) 98_test_noRandom/98_test_noRandom.cpp -o bin/98_test_noRandom
+	@echo "Generado el ejecutable bin/98_test_noRandom"
 	@echo "-----------------------------------------------------------"
 
 # 99 TEST RANDOM
