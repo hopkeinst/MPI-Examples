@@ -1,11 +1,20 @@
 ## Repositorio para pruebas con MPI
 
+A continuación una tabla con los ejercicios de pruebas:
+
+| Número ejercicio | Nombre | Descripción |
+|-----------------:|:-------|:-----------:|
+| 97 | [MPY Async](#97-mpi-async) | Prueba de la comunicación asincrónica entre procesos |
+| 98 | [Test no random](#98-test-no-random) | -- |
+| 99 | [Test random](#99-test-random) | Prueba en que se envía de manera aleatoria a otros procesos o el mismo datos, de manera asincrónica, y se hace en particiones de memoria que se van sumando |
+
+
 
 ----
 
-#### 98 MPI Async
+#### 97 MPI Async
 
-El [código en C++: 98_mpi_async.cpp](./98_mpi_async/98_mpi_async.cpp).
+El [código en C++: 97_mpi_async.cpp](./97_mpi_async/97_mpi_async.cpp).
 
 La idea es generar una comunicación asincrónica en la cual no se conoce la cantidad de mensajes a enviar ni a recibir.
 
@@ -65,11 +74,11 @@ Para poder compilar este código recomiendo hacerlo de la siguiente manera:
 
 Y para ejecutarlo:
 
-`mpirun -np 4 bin/98_mpi_async 4`
+`mpirun -np 4 bin/97_mpi_async 4`
 
 Al hacerlo se obtiene como resultado algo similar a la siguiente imagen:
 
-![98_output_2qb](imgs/98/01_output.png)
+![97_output_2qb](imgs/97/01_output.png)
 
 En donde se puede observar la parte que envía datos, la que recibe y los resultados finales.
 
@@ -80,4 +89,15 @@ La línea `  RX: Recibe: 2 <- De: 3 |  0.325831863715235, -0.587405002483821` in
 Los resultados totalizados se observan hacia el final, en donde:
 ` 3 | 11 >  0.479384374096703	-1.010476895147225` nos indica que es el proceso #3, con su equivalente en binario `11` y los valores totalizados de la parte __real__ que es 0.479384374096703 y luego la parte __imaginaria__ que es -1.010476895147225. Luego, en la siguiente línea la cantidad de tiempo que demoró la ejecución, en segundos.
 
+----
 
+#### 98 Test no random
+
+
+----
+
+#### 99 Test random
+
+El [código en C++: 99_test_random.cpp](./99_test_random/99_test_random.cpp).
+
+La idea es 
