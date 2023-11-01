@@ -2,7 +2,7 @@ CXX = mpicxx
 
 LIBS += -L /opt/intel/oneapi/mpi/latest/lib/release -lmpi
 
-all: hello_world send_receive mpi_async test_noRandom test_random
+all: hello_world send_receive mpi_sum_allReduce_arrayDiffSize mpi_async test_noRandom test_random
 
 # 01 HELLO WORLD
 hello_world:
@@ -15,6 +15,13 @@ send_receive:
 	$(CXX) 02_send_receive/02_send_receive.cpp -o bin/02_send_receive
 	@echo "Generado el ejecutable bin/02_send_receive"
 	@echo "-----------------------------------------------------------"
+
+# 96
+mpi_sum_allReduce_arrayDiffSize:
+	$(CXX) 96_sum_allReduce_arraySize/96_sum_allReduce_arraySize.cpp -o bin/96_sum_allReduce_arraySize
+	@echo "Generado el ejecutable bin/96_sum_allReduce_arraySize"
+	@echo "-----------------------------------------------------------"
+
 
 # 97 MPI ASYNC
 # Test para crear varios envíos de manera aleatorio, al igual que recibirlos, asincrónicos

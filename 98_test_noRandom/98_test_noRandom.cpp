@@ -116,7 +116,7 @@ int main(int argc, char *argv[]){
                     &request
                 );
                 printf(" TX: Envía: %d - %2d -> A: %d - %2d | %18.15lf, %18.15lf\n", rank, j, procTarget, data.state, data.real, data.imag);
-                MPI_Wait(&request, &status);
+                //MPI_Wait(&request, &status);
             }
         }
     }
