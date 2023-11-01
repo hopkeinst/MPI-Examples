@@ -124,6 +124,7 @@ Para un ejemplo práctico, vamos a tomar que la cantidad de procesos MPI van a s
 totalProcs = 2;
 totalQubits = 3;
 totalStates = 8; // 2^3
+chunkSize = 4; // Cantidad de estados por proceso
 ```
 
 Siendo así, la variable `totalMsgSend` puede tomar un valor desde 0 hasta 8.
@@ -132,5 +133,56 @@ Luego, para ese estado **local** _(identificado en el código con la variable `j
 
 Si el estado aleatorio es el mismo desde donde sale el mensaje, vuelve a escoger otro hasta que sean diferentes.
 
-Teniendo esto, se guardan los datos en una estructura de datos que es la de enviar a otro proceso_(o conservar en el mismo)_ 
+Teniendo esto, se guardan los datos en una estructura de datos que es la de enviar a otro proceso _(o conservar en el mismo)_. Estos datos son:
 
+- stateTarget: Es el estado objetivo, a donde deben llegar los datos. Es el global, o sea va de 0 a 7.
+- stateSource: Es el estado de donde salen los datos. Es el global, o sea va de 0 a 7.
+- real: Valor numérico a enviar, tipo double, entre -1 y 1.
+- imag: Valor numérico a enviar, tipo double, entre -1 y 1.
+
+Luego, se calcula en cuál proceso está el estado objetivo:
+
+```
+procTarget = (int)floor(dataSend.stateTarget/chunkSize);
+```
+
+Y luego, si el proceso objetivo es el mismo actual `procTarget == thisProc` entonces lo que realiza es modificar los valores del vector `amplitudesLocal` que es donde se guardan los datos. Si va para otro proceso, se transmiten los datos usando `MPI_Isend`. 
+
+**Importante:** También se aumenta en uno la posición del correspondiente al proceso actual, del vector `sizeMsgRecvLocal`, esto para posteriormente sumarlo y en la parte de la recepción saber cuantos mensajes debe esperar cada proceso recibir.
+
+Se muestra en pantalla el envío de los datos, teniendo en cuenta de que el usuario pueda observar: proceso, estado local, estado global de donde sale la estructura de datos así como a donde llega y los datos enviados.
+
+Luego de esto se hace la sumatoria de la cantidad de mensajes enviados a otros procesos, y los que quedan en el mismo, usando `MPI_Allreduce` para que puedan ser consultados en todos los procesos.
+
+En la parte de la recepción, se tiene un lazo `do-while` que comienza con `MPI_Iprobe` para ver si hay mensajes en espera para este proceso. Si es correcto, se tiene en la variable `hasMsg` este estado y se procede a leer la estructura y asignar los datos al vector de amplitudes local respectivamente. Luego se muestran los datos de la recepción y se incrementa en 1 el contador de mensajes recibidos.
+
+Este contador de mensajes recibidos se usa para el lazo `do-while`, ya que estará ejecutándose siempre que la cantidad de mensajes recibidos sea menor a la de recibidos.
+
+Posterior se finaliza MPI y se muestran los resultados.
+
+En cuanto al momento de correrlo, se tienen casos alojados en la carpeta [imgs/99](./imgs/99/) de donde tenemos el resultado de uno al usar `mpirun -np 2 bin/98_test_random 3`:
+
+![99_output_01_np2nq3](imgs/99/05_01.png)
+
+Comienza mostrando la cantidad de qubits, estados, tamaño del chunk. Sigue una tabla donde se puede identificar:
+- **Tipo de trabajo _(jobType)_:** Si es envío de mensajes _Tx_ o recepción _Rx_.
+- **Estado global _(staGlo)_:** El número del estado, a nivel global que envía o recibe la estructura según la dirección de transmisión.
+- **Número del proceso _(proc)_:** El número del proceso que envía o recibe la estructura según la dirección de transmisión.
+- **Estado local _(steLoc)_:** El número del estado a nivel local, dentro del vector _amplitudesLocal_. Es el que envía o recibe la estructura según la dirección de transmisión.
+- **La dirección de transmisión _(dir)_:** Es la dirección de transmisión de la estructura de datos. Aquí es importante identificar en que hacia que lado apunta la flecha `<` `>` y la parte plana `|`. La parte hacia donde apunta la flecha indica hacia donde van los datos, mientras que la parte plana de donde viene.
+- **Dato real _(real)_:** Es el dato que hace parte del componente real del vector. 
+- **Dato imaginario _(imag)_:** Es el dato que hace parte del componente imaginario del vector. 
+
+Al costado derecho hay algunas filas que tienen un asterisco `*` que señala los procesos que no envían datos a otros, sino que el estado de destino está en el mismo proceso.
+
+También tenemos la parte de recepción de los datos:
+
+![99_output_02_np2nq3](imgs/99/05_02.png)
+
+Y luego un mensaje que nos dice para cada proceso cuántos mensajes se recibió de otros procesos y cuantos fueron dentro del mismo proceso.
+
+Para concluir se muestra una tabla con los resultados de cada vector de amplitudes local, en donde se muestra el equivalente al estado global, su análogo en binario, luego a qué proceso pertenece, el estado local, el resultado final del dato real y el imaginario _(sumatoria de los datos recibidos en este proceso)_.
+
+Los resultados se comprobaron en una hoja de cálculo, en donde lo mostrado en el envío de datos se anotó y luego se realizó sumatoria _(columna sum)_ y se compara con lo mostrado por consola, coincidiendo los valores para cada estado global. Igualmente la cantidad de mensajes recibidos por proceso: los que vienen de otros y los propios.
+
+![99_output_datasheet_np2nq3](imgs/99/05_datasheet.png)

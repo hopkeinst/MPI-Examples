@@ -148,7 +148,7 @@ int main(int argc, char *argv[]){
             }
         }
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
 
     // Sumar los locales al global
     MPI_Allreduce(sizeMsgRecvLocal.data(), sizeMsgRecvGlobal.data(), totalProcs, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
