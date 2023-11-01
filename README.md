@@ -100,4 +100,37 @@ Los resultados totalizados se observan hacia el final, en donde:
 
 El [código en C++: 99_test_random.cpp](./99_test_random/99_test_random.cpp).
 
-La idea es 
+La idea es poder realizar una comunicación asincrónica entre varios procesos pasando mensajes.
+
+Es una mejora del [97 MPI Async](#97-mpi-async), teniendo en cuenta más herramientas tanto de código como de MPI.
+
+Aquí se toma el dato de entrada _(que para nuestro ejemplo son qubits)_ y se calcula un valor que va a ser conocido como cantidad de estados $totalStates=2^{totalQubits}$. A partir de aquí se deben dividir esta cantidad de estados en la cantidad de procesos. Se toma el planteamiento de que:
+
+- La cantidad de procesos establecida es par, siempre.
+- La cantidad de estados va a ser mayor a la cantidad de procesos, siempre.
+- Los datos a enviar nunca van a ser para el mismo estado desde donde se generan.
+
+Con esto, se comienza por establecer para cada uno de los estados la cantidad de mensajes a enviar usando un randómico.
+
+```
+totalMsgSend = rand()%(totalStates+1);
+```
+
+Donde puede tener un valor desde 0 _(no envía ningún mensaje)_ hasta el valor total de estados _(máximo posible que puede enviar)_. 
+
+Para un ejemplo práctico, vamos a tomar que la cantidad de procesos MPI van a ser 2 y la cantidad de qubits va a ser 3; por lo tanto:
+
+```
+totalProcs = 2;
+totalQubits = 3;
+totalStates = 8; // 2^3
+```
+
+Siendo así, la variable `totalMsgSend` puede tomar un valor desde 0 hasta 8.
+
+Luego, para ese estado **local** _(identificado en el código con la variable `j`)_ para cada uno de los mensajes que debe enviar _(identificado en el código con la variable `i`)_  se escoge por aleatorio a qué otro estado va a enviar el mensaje.
+
+Si el estado aleatorio es el mismo desde donde sale el mensaje, vuelve a escoger otro hasta que sean diferentes.
+
+Teniendo esto, se guardan los datos en una estructura de datos que es la de enviar a otro proceso_(o conservar en el mismo)_ 
+
