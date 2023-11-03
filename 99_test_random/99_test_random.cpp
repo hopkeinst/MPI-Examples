@@ -66,9 +66,6 @@ int main(int argc, char *argv[]){
     // Se obtiene el numero del proceso y asigna a thisProc
     MPI_Comm_rank(MPI_COMM_WORLD, &thisProc);
 
-    // Arreglo que va a guardar la cantidad de mensajes que va a llegar a cada proceso
-    //unsigned int 
-
     // El tipo de dato de la estructura, en MPI
     MPI_Datatype structToSend;
     MPI_Type_contiguous(3, MPI_DOUBLE, &structToSend);
@@ -85,10 +82,6 @@ int main(int argc, char *argv[]){
     // Donde voy a guardar los procesos locales
     std::vector<double> amplitudesLocal(chunkSize*2, 0.0);
 
-    // Para almacenar cuantos mensajes se pasan a otros procesos
-    std::vector<int> sizeMsgRecvGlobal(totalProcs, 0);
-    std::vector<int> sizeMsgInteGlobal(totalProcs, 0);
-
     if(thisProc == 0) {
         printf("totalQubits = %d\n", totalQubits);
         printf("totalStates = %d\n", totalStates);
@@ -102,9 +95,6 @@ int main(int argc, char *argv[]){
     MPI_Barrier(MPI_COMM_WORLD);
 
     // // ENVÍO // //
-    // Cantidad de mensajes a enviar
-    std::vector<int> sizeMsgRecvLocal(totalProcs, 0);
-    std::vector<int> sizeMsgInteLocal(totalProcs, 0);
     uint8_t nMsgSend = 1;
     unsigned int localMsg = 0;
     for(j=0; j<chunkSize; j++) { // j = state local
@@ -121,14 +111,11 @@ int main(int argc, char *argv[]){
                 }
                 dataSend.real = rand()%3-1.0;
                 dataSend.imag = rand()%3-1.0;
-                //dataSend.real = ((rand()/(double)RAND_MAX)*2.0)-1.0;
-                //dataSend.imag = ((rand()/(double)RAND_MAX)*2.0)-1.0;
                 procTarget = (int)floor(dataSend.stateTarget/chunkSize);
                 stateLocalSource = dataSend.stateSource - (thisProc*chunkSize);
                 stateLocalTarget = dataSend.stateTarget - (procTarget*chunkSize);
                 printf(" | Tx      | %6d | %4d | %6d | |-> | %6d | %4d | %6d | %6.1f | %6.1f |", dataSend.stateSource, thisProc, stateLocalSource, dataSend.stateTarget, procTarget, stateLocalTarget, dataSend.real, dataSend.imag);
                 if(procTarget == thisProc) {
-                    sizeMsgInteLocal[procTarget] += 1;
                     amplitudesLocal[(stateLocalTarget*2)] += dataSend.real;
                     amplitudesLocal[(stateLocalTarget*2)+1] += dataSend.imag;
                     printf(" *");
@@ -155,25 +142,21 @@ int main(int argc, char *argv[]){
                         MPI_COMM_WORLD,
                         &requestSend
                     );
-                    sizeMsgRecvLocal[procTarget] += 1;
                 }
                 printf("\n");
             }
         }
     }
     MPI_Barrier(MPI_COMM_WORLD);
-
-    // Sumar los locales al global
-    MPI_Allreduce(sizeMsgRecvLocal.data(), sizeMsgRecvGlobal.data(), totalProcs, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(sizeMsgInteLocal.data(), sizeMsgInteGlobal.data(), totalProcs, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-
-    unsigned int globRecv;
-
+    if(thisProc == 0) {
+        printf(" ");
+        repeatChar('-', 85);
+    }
+    
     // RECEPCIÓN CANTIDAD DE MSGS //
     int hasMsg2 = 0;
-    int cntRecv2 = 0;
+    int globRecv = 0;
     uint8_t cntMsgRecv = 0;
-
     do {
         MPI_Status statusRecv2;
         MPI_Iprobe(
@@ -194,17 +177,14 @@ int main(int argc, char *argv[]){
                 MPI_COMM_WORLD,
                 &statusRecv2
             );
-            cntRecv2 += 1;
-            printf("Llega msg a %d\n", thisProc);
+            globRecv += 1;
         }
     } while(hasMsg2);
-
     MPI_Barrier(MPI_COMM_WORLD);
 
     // // RECEPCIÓN DATOS // //
     int hasMsg = 0;
     int cntRecv = 0;
-    
     do {
         MPI_Status statusRecv;
         MPI_Iprobe(
@@ -234,8 +214,8 @@ int main(int argc, char *argv[]){
             amplitudesLocal[(stateLocalTarget*2)+1] += dataRecv.imag;
             cntRecv += 1;
         }
-    } while(cntRecv < cntRecv2);
-    //while(cntRecv < sizeMsgRecvGlobal[thisProc]);
+    } while(cntRecv < globRecv);
+    MPI_Barrier(MPI_COMM_WORLD);
 
     // Se finaliza el MPI
     MPI_Finalize();
@@ -244,33 +224,22 @@ int main(int argc, char *argv[]){
         if(i == thisProc) {
             printf(" ");
             repeatChar('=', 53);
-                printf("Proc %d recv %4d by others and %4d this\n", i, cntRecv2, localMsg);
-        }
-    }
-
-    if(thisProc == 0) {
-        printf(" ");
-        repeatChar('=', 85);
-        for(i = 0; i<totalProcs; i++) {
-            printf("Proceso %d recibe %4d mensajes de otros procesos y %4d del mismo proceso\n", i, sizeMsgRecvGlobal[i], sizeMsgInteGlobal[i]);
-        }
-        printf(" ");
-        repeatChar('=', 53);
-        printf(" | staGlo | binGlo | proc | staLoc |  real  |  imag  |\n");
-        printf(" ");
-        repeatChar('=', 53);
-    }
-
-    for(i=0; i<totalProcs; i++) {
-        if(i == thisProc) {
+            printf("Proceso # %2d recibe %4d mensajes de otros procesos y %4d del mismo proceso\n", i, globRecv, localMsg);
+            printf(" ");
+            repeatChar('=', 53);
+            printf(" | staGlo | binGlo | proc | staLoc |  real  |  imag  |\n");
+            printf(" ");
+            repeatChar('=', 53);
             for(j=0; j<chunkSize; j++) {
                     printf(" | %6d | %6s | %4d | %6d | %6.1f | %6.1f |\n", (i*chunkSize)+j, decimalToBinary((i*chunkSize)+j, maxBits).c_str(), i, j, amplitudesLocal[(j*2)], amplitudesLocal[(j*2)+1]);
             }
         }
     }
-        
-    printf(" ");
-    repeatChar('=', 53);
+
+    if(thisProc == 0) {
+        printf(" ");
+        repeatChar('=', 53);
+    }
     
     return 0;
 
