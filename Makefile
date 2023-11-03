@@ -2,7 +2,7 @@ CXX = mpicxx
 
 LIBS += -L /opt/intel/oneapi/mpi/latest/lib/release -lmpi
 
-all: hello_world send_receive mpi_sum_allReduce_arrayDiffSize mpi_async test_noRandom test_random
+all: hello_world send_receive mpi_reduce mpi_sum_allReduce_arrayDiffSize mpi_async test_noRandom test_random
 
 # 01 HELLO WORLD
 hello_world:
@@ -14,6 +14,12 @@ hello_world:
 send_receive:
 	$(CXX) 02_send_receive/02_send_receive.cpp -o bin/02_send_receive
 	@echo "Generado el ejecutable bin/02_send_receive"
+	@echo "-----------------------------------------------------------"
+
+# 40 MPI REDUCE
+mpi_reduce:
+	$(CXX) 40_mpi_reduce/40_mpi_reduce.cpp -o bin/40_mpi_reduce
+	@echo "Generado el ejecutable bin/40_mpi_reduce"
 	@echo "-----------------------------------------------------------"
 
 # 96

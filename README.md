@@ -186,3 +186,15 @@ Para concluir se muestra una tabla con los resultados de cada vector de amplitud
 Los resultados se comprobaron en una hoja de cálculo, en donde lo mostrado en el envío de datos se anotó y luego se realizó sumatoria _(columna sum)_ y se compara con lo mostrado por consola, coincidiendo los valores para cada estado global. Igualmente la cantidad de mensajes recibidos por proceso: los que vienen de otros y los propios.
 
 ![99_output_datasheet_np2nq3](imgs/99/05_datasheet.png)
+
+-----
+
+Propuesta para cambiar el MPI_Allreduce del 99; es cada proceso envíe al proceso respectivo la cantidad que envío, pero como mensaje, con un tag particular.
+
+El proceso receptor tiene un while de que si ha recibido mensajes al respecto, con el tag especial de que es para la cantidad de mensajes. Y todo lo que se reciba al respecto se va sumando. Cuando ya termine de recibirlos (tocaría mirar con MPI_Probe o MPI_Iprobe) ahí si pase a como está actualmente, con el do-while.
+
+Esto, para evitar crear una cantidad grande de vectores; porque si son 1.000 procesos serían 1.000 vectores de 1.000 enteros cada uno.
+
+
+Otra es usar MPI reduce para cada uno
+

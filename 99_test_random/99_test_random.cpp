@@ -105,6 +105,8 @@ int main(int argc, char *argv[]){
     // Cantidad de mensajes a enviar
     std::vector<int> sizeMsgRecvLocal(totalProcs, 0);
     std::vector<int> sizeMsgInteLocal(totalProcs, 0);
+    unsigned int nMsgSend = 1;
+    unsigned int localMsg = 0;
     for(j=0; j<chunkSize; j++) { // j = state local
         totalMsgSend = rand()%(totalStates+1);
         if(totalMsgSend > 0) {
@@ -130,9 +132,20 @@ int main(int argc, char *argv[]){
                     amplitudesLocal[(stateLocalTarget*2)] += dataSend.real;
                     amplitudesLocal[(stateLocalTarget*2)+1] += dataSend.imag;
                     printf(" *");
+                    localMsg += 1;
                 } else {
                     MPI_Request requestSend;
+                    MPI_Request requestSend2;
                     MPI_Status statusSend;
+                    MPI_Isend(
+                        &nMsgSend,
+                        1,
+                        MPI_INT,
+                        procTarget,
+                        1,
+                        MPI_COMM_WORLD,
+                        &requestSend2
+                    );
                     MPI_Isend(
                         &dataSend,
                         1,
@@ -148,13 +161,47 @@ int main(int argc, char *argv[]){
             }
         }
     }
-    //MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 
     // Sumar los locales al global
     MPI_Allreduce(sizeMsgRecvLocal.data(), sizeMsgRecvGlobal.data(), totalProcs, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(sizeMsgInteLocal.data(), sizeMsgInteGlobal.data(), totalProcs, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    // // RECEPCIÓN // //
+    unsigned int globRecv;
+
+    // RECEPCIÓN CANTIDAD DE MSGS //
+    int hasMsg2 = 0;
+    int cntRecv2 = 0;
+    int cntMsgRecv = 0;
+
+    do {
+        MPI_Status statusRecv2;
+        MPI_Iprobe(
+            MPI_ANY_SOURCE, 
+            1, 
+            MPI_COMM_WORLD, 
+            &hasMsg2, 
+            &statusRecv2
+        );
+        if(hasMsg2) {
+            MPI_Request requestRecv2;
+            MPI_Recv(
+                &cntMsgRecv,
+                1,
+                MPI_INT,
+                MPI_ANY_SOURCE,
+                1,
+                MPI_COMM_WORLD,
+                &statusRecv2
+            );
+            cntRecv2 += 1;
+            printf("Llega msg a %d\n", thisProc);
+        }
+    } while(hasMsg2);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // // RECEPCIÓN DATOS // //
     int hasMsg = 0;
     int cntRecv = 0;
     
@@ -187,11 +234,18 @@ int main(int argc, char *argv[]){
             amplitudesLocal[(stateLocalTarget*2)+1] += dataRecv.imag;
             cntRecv += 1;
         }
-        
     } while(cntRecv < sizeMsgRecvGlobal[thisProc]);
 
     // Se finaliza el MPI
     MPI_Finalize();
+
+    for(i=0; i<totalProcs; i++) {
+        if(i == thisProc) {
+            printf(" ");
+            repeatChar('=', 53);
+                printf("Proc %d recv %4d by others and %4d this\n", i, cntRecv2, localMsg);
+        }
+    }
 
     if(thisProc == 0) {
         printf(" ");
