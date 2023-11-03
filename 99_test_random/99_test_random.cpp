@@ -105,7 +105,7 @@ int main(int argc, char *argv[]){
     // Cantidad de mensajes a enviar
     std::vector<int> sizeMsgRecvLocal(totalProcs, 0);
     std::vector<int> sizeMsgInteLocal(totalProcs, 0);
-    unsigned int nMsgSend = 1;
+    uint8_t nMsgSend = 1;
     unsigned int localMsg = 0;
     for(j=0; j<chunkSize; j++) { // j = state local
         totalMsgSend = rand()%(totalStates+1);
@@ -140,7 +140,7 @@ int main(int argc, char *argv[]){
                     MPI_Isend(
                         &nMsgSend,
                         1,
-                        MPI_INT,
+                        MPI_UINT8_T,
                         procTarget,
                         1,
                         MPI_COMM_WORLD,
@@ -172,7 +172,7 @@ int main(int argc, char *argv[]){
     // RECEPCIÓN CANTIDAD DE MSGS //
     int hasMsg2 = 0;
     int cntRecv2 = 0;
-    int cntMsgRecv = 0;
+    uint8_t cntMsgRecv = 0;
 
     do {
         MPI_Status statusRecv2;
@@ -188,7 +188,7 @@ int main(int argc, char *argv[]){
             MPI_Recv(
                 &cntMsgRecv,
                 1,
-                MPI_INT,
+                MPI_UINT8_T,
                 MPI_ANY_SOURCE,
                 1,
                 MPI_COMM_WORLD,
@@ -234,7 +234,8 @@ int main(int argc, char *argv[]){
             amplitudesLocal[(stateLocalTarget*2)+1] += dataRecv.imag;
             cntRecv += 1;
         }
-    } while(cntRecv < sizeMsgRecvGlobal[thisProc]);
+    } while(cntRecv < cntRecv2);
+    //while(cntRecv < sizeMsgRecvGlobal[thisProc]);
 
     // Se finaliza el MPI
     MPI_Finalize();
