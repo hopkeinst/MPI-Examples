@@ -196,7 +196,6 @@ int main(int argc, char *argv[]){
         );
         if(hasMsg) {
             struct StateToSend dataRecv;
-            MPI_Request requestRecv;
             int stateLocalSource, stateLocalTarget;
             MPI_Recv(
                 &dataRecv,
