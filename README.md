@@ -148,15 +148,15 @@ procTarget = (int)floor(dataSend.stateTarget/chunkSize);
 
 Y luego, si el proceso objetivo es el mismo actual `procTarget == thisProc` entonces lo que realiza es modificar los valores del vector `amplitudesLocal` que es donde se guardan los datos. Si va para otro proceso, se transmiten los datos usando `MPI_Isend`. 
 
-**Importante:** También se aumenta en uno la posición del correspondiente al proceso actual, del vector `sizeMsgRecvLocal`, esto para posteriormente sumarlo y en la parte de la recepción saber cuantos mensajes debe esperar cada proceso recibir.
+Para el envío es importante avisarle al proceso que va a recepcionar los datos cuántos van a ser, para en un lazo `do-while` los reciba.
 
 Se muestra en pantalla el envío de los datos, teniendo en cuenta de que el usuario pueda observar: proceso, estado local, estado global de donde sale la estructura de datos así como a donde llega y los datos enviados.
 
-Luego de esto se hace la sumatoria de la cantidad de mensajes enviados a otros procesos, y los que quedan en el mismo, usando `MPI_Allreduce` para que puedan ser consultados en todos los procesos.
+En la parte de la recepción, se tiene dos lazos `do-while`. El primero es para obtener la cantidad de mensajes que se van a recibir en este proceso. 
 
-En la parte de la recepción, se tiene un lazo `do-while` que comienza con `MPI_Iprobe` para ver si hay mensajes en espera para este proceso. Si es correcto, se tiene en la variable `hasMsg` este estado y se procede a leer la estructura y asignar los datos al vector de amplitudes local respectivamente. Luego se muestran los datos de la recepción y se incrementa en 1 el contador de mensajes recibidos.
+Ambos lazos comienzas con `MPI_Iprobe` para ver si hay mensajes en espera para este proceso. Si es correcto, se tiene en la variable `hasMsg` este estado. Para el primer lazo que obitene la cantidad de mensajes se incrementa en uno la variable `cntRecv`. Para el segundo lazo se procede a leer la estructura y asignar los datos al vector de amplitudes local respectivamente. Luego se muestran los datos de la recepción y se incrementa en 1 el contador de mensajes recibidos.
 
-Este contador de mensajes recibidos se usa para el lazo `do-while`, ya que estará ejecutándose siempre que la cantidad de mensajes recibidos sea menor a la de recibidos.
+Este contador (`cntRecv`) de mensajes recibidos se usa para el lazo `do-while`, ya que estará ejecutándose siempre que la cantidad de mensajes recibidos sea menor a la de recibidos.
 
 Posterior se finaliza MPI y se muestran los resultados.
 
